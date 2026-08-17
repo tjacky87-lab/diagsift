@@ -53,7 +53,7 @@ func ValidateCommand(executable string, args []string) error {
 		return fmt.Errorf("command executable is required")
 	}
 	if strings.HasSuffix(base, ".bat") || strings.HasSuffix(base, ".cmd") {
-		return fmt.Errorf("Windows batch file execution is prohibited")
+		return fmt.Errorf("windows batch file execution is prohibited")
 	}
 	for _, suffix := range []string{".exe", ".com"} {
 		if strings.HasSuffix(base, suffix) {
