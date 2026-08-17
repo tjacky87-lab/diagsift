@@ -1,0 +1,30 @@
+apiVersion: diagsift/v1alpha1
+kind: DiagnosticBundle
+metadata:
+  name: basic-example
+limits:
+  maxFiles: 20
+  maxTotalBytes: 1048576
+  maxDuration: 30s
+roots:
+  - id: example
+    path: .
+collectors:
+  - id: example-log
+    type: file
+    root: example
+    paths:
+      - fixtures/example.log
+    archivePrefix: logs
+    maxBytes: 262144
+  - id: platform
+    type: system
+    fields: [os, arch]
+redactions:
+  builtins:
+    - credentials
+    - private-keys
+    - bearer-tokens
+    - url-credentials
+    - connection-strings
+    - paths

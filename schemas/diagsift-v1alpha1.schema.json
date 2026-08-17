@@ -1,0 +1,192 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:diagsift:schema:v1alpha1",
+  "title": "DiagSift DiagnosticBundle v1alpha1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["apiVersion", "kind", "metadata", "limits", "roots", "collectors"],
+  "properties": {
+    "apiVersion": {"const": "diagsift/v1alpha1"},
+    "kind": {"const": "DiagnosticBundle"},
+    "metadata": {"$ref": "#/$defs/metadata"},
+    "limits": {"$ref": "#/$defs/limits"},
+    "roots": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/root"}
+    },
+    "collectors": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 100,
+      "items": {"$ref": "#/$defs/collector"}
+    },
+    "redactions": {"$ref": "#/$defs/redactions"}
+  },
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{0,62}$"
+    },
+    "positiveGoDuration": {
+      "type": "string",
+      "pattern": "^\\+?(?:[0-9]+(?:\\.[0-9]+)?(?:ns|us|µs|μs|ms|s|m|h))+$",
+      "not": {
+        "pattern": "^\\+?(?:0+(?:\\.0+)?(?:ns|us|µs|μs|ms|s|m|h))+$"
+      }
+    },
+    "relativeFilePath": {
+      "type": "string",
+      "minLength": 1,
+      "allOf": [
+        {"not": {"pattern": "^(?:/|[A-Za-z]:)"}},
+        {"not": {"pattern": "(^|/)\\.{1,2}($|/)"}},
+        {"not": {"pattern": "[\\\\\\x00]"}}
+      ]
+    },
+    "archivePrefix": {
+      "type": "string",
+      "anyOf": [
+        {"const": ""},
+        {
+          "minLength": 1,
+          "allOf": [
+            {"not": {"pattern": "^/"}},
+            {"not": {"pattern": "(^|/)(?:\\.{1,2}|)($|/)"}},
+            {"not": {"pattern": "[:\\\\\\x00]"}}
+          ]
+        }
+      ]
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name"],
+      "properties": {
+        "name": {"$ref": "#/$defs/identifier"}
+      }
+    },
+    "limits": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["maxFiles", "maxTotalBytes", "maxDuration"],
+      "properties": {
+        "maxFiles": {"type": "integer", "minimum": 1, "maximum": 1000},
+        "maxTotalBytes": {"type": "integer", "minimum": 1, "maximum": 67108864},
+        "maxDuration": {"$ref": "#/$defs/positiveGoDuration"}
+      }
+    },
+    "root": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "path"],
+      "properties": {
+        "id": {"$ref": "#/$defs/identifier"},
+        "path": {"type": "string", "minLength": 1, "pattern": "\\S"}
+      }
+    },
+    "collector": {
+      "oneOf": [
+        {"$ref": "#/$defs/fileCollector"},
+        {"$ref": "#/$defs/systemCollector"},
+        {"$ref": "#/$defs/commandCollector"}
+      ]
+    },
+    "fileCollector": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "root", "paths", "maxBytes"],
+      "properties": {
+        "id": {"$ref": "#/$defs/identifier"},
+        "type": {"const": "file"},
+        "root": {"$ref": "#/$defs/identifier"},
+        "paths": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 500,
+          "items": {"$ref": "#/$defs/relativeFilePath"}
+        },
+        "archivePrefix": {"$ref": "#/$defs/archivePrefix"},
+        "maxBytes": {"type": "integer", "minimum": 1, "maximum": 8388608}
+      }
+    },
+    "systemCollector": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "fields"],
+      "properties": {
+        "id": {"$ref": "#/$defs/identifier"},
+        "type": {"const": "system"},
+        "fields": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 2,
+          "uniqueItems": true,
+          "items": {"enum": ["os", "arch"]}
+        }
+      }
+    },
+    "commandCollector": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "executable", "timeout", "maxOutputBytes"],
+      "properties": {
+        "id": {"$ref": "#/$defs/identifier"},
+        "type": {"const": "command"},
+        "executable": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S",
+          "not": {
+            "pattern": "(?:\\.[bB][aA][tT]|\\.[cC][mM][dD])\\s*$|(?:^\\s*|[\\\\/])(?:[cC][mM][dD]|[pP][oO][wW][eE][rR][sS][hH][eE][lL][lL]|[pP][wW][sS][hH]|[sS][hH]|[bB][aA][sS][hH]|[zZ][sS][hH]|[dD][aA][sS][hH]|[kK][sS][hH])(?:\\.[eE][xX][eE]|\\.[cC][oO][mM])?\\s*$"
+          }
+        },
+        "args": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "timeout": {"$ref": "#/$defs/positiveGoDuration"},
+        "maxOutputBytes": {"type": "integer", "minimum": 1, "maximum": 4194304}
+      }
+    },
+    "redactions": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "builtins": {
+          "type": "array",
+          "maxItems": 6,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "credentials",
+              "private-keys",
+              "bearer-tokens",
+              "url-credentials",
+              "connection-strings",
+              "paths"
+            ]
+          }
+        },
+        "custom": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/customRedaction"}
+        }
+      }
+    },
+    "customRedaction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "pattern"],
+      "properties": {
+        "id": {"$ref": "#/$defs/identifier"},
+        "pattern": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512,
+          "format": "regex"
+        }
+      }
+    }
+  }
+}

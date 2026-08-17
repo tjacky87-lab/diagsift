@@ -1,0 +1,20 @@
+# Build and test output
+/bin/
+/dist/
+/coverage.out
+*.test
+
+# Local diagnostic bundles and staging
+*.zip
+/.diagsift/
+
+# Editor and OS files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Private implementation inputs/state (never publish)
+/CODEX_HANDOFF_V2.md
+/CODEX_MASTER_PROMPT_V2.md
+/PROJECT_STATE.md
