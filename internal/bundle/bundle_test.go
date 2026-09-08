@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -129,4 +130,30 @@ redactions:
 		t.Fatal(err)
 	}
 	return loaded, preview
+}
+
+func TestCreateRefusesDanglingOutputSymlink(t *testing.T) {
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "input.log"), []byte("synthetic"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	loaded, preview := loadManifest(t, dir, "input.log")
+	r, err := redact.New(loaded.Manifest.Redactions)
+	if err != nil {
+		t.Fatal(err)
+	}
+	output := filepath.Join(dir, "existing-link.zip")
+	target := filepath.Join(dir, "absent.zip")
+	if err := os.Symlink(target, output); err != nil {
+		if runtime.GOOS == "windows" {
+			t.Skipf("symlink creation unavailable: %v", err)
+		}
+		t.Fatal(err)
+	}
+	if _, err := bundle.Create(context.Background(), loaded, preview, output, "test", r); err == nil {
+		t.Fatal("expected symlink overwrite refusal")
+	}
+	if got, err := os.Readlink(output); err != nil || got != target {
+		t.Fatalf("output link modified: %q %v", got, err)
+	}
 }

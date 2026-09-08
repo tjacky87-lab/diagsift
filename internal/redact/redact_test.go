@@ -66,3 +66,28 @@ func TestCustomRuleUsesOnlyIDInReplacement(t *testing.T) {
 		t.Fatalf("output=%q counts=%v err=%v", output, counts, err)
 	}
 }
+
+func TestPrivateKeyWithoutClosingMarker(t *testing.T) {
+	r, err := redact.New(manifest.Redactions{Builtins: []string{"private-keys"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	input := []byte("prefix\n-----BEGIN RSA PRIVATE KEY-----\nINVALID_SYNTHETIC_TRUNCATED_KEY")
+	output, counts, err := r.Sanitize(input)
+	if err != nil || bytes.Contains(output, []byte("INVALID_SYNTHETIC_TRUNCATED_KEY")) || counts["private-keys"] != 1 {
+		t.Fatalf("unterminated key survived: output=%q counts=%v err=%v", output, counts, err)
+	}
+}
+
+func TestQuotedAndShortCredentials(t *testing.T) {
+	r, err := redact.New(manifest.Redactions{Builtins: []string{"credentials"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, input := range []string{`{"password": "INVALID SYNTHETIC SECRET"}`, `password='INVALID SYNTHETIC SECRET'`, `token=xyz`} {
+		output, counts, err := r.Sanitize([]byte(input))
+		if err != nil || bytes.Contains(output, []byte("SYNTHETIC SECRET")) || bytes.Contains(output, []byte("xyz")) || counts["credentials"] != 1 {
+			t.Fatalf("credential survived: input=%q output=%q counts=%v err=%v", input, output, counts, err)
+		}
+	}
+}

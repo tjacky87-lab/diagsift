@@ -55,6 +55,9 @@ func Open(path string) (Summary, error) {
 		if err != nil || name == "" || file.FileInfo().IsDir() {
 			return Summary{}, fmt.Errorf("bundle contains an unsafe entry name")
 		}
+		if !file.Mode().IsRegular() {
+			return Summary{}, fmt.Errorf("bundle contains a non-regular entry")
+		}
 		key := strings.ToLower(name)
 		if _, exists := files[key]; exists {
 			return Summary{}, fmt.Errorf("bundle contains duplicate or colliding entry names")

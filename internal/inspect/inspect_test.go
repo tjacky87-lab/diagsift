@@ -67,6 +67,7 @@ func TestRejectsExcessiveEntryCount(t *testing.T) {
 type zipEntry struct {
 	name string
 	data []byte
+	mode os.FileMode
 }
 
 func writeZIP(t *testing.T, path string, entries []zipEntry) {
@@ -77,7 +78,11 @@ func writeZIP(t *testing.T, path string, entries []zipEntry) {
 	}
 	archive := zip.NewWriter(file)
 	for _, entry := range entries {
-		writer, err := archive.Create(entry.name)
+		header := &zip.FileHeader{Name: entry.name, Method: zip.Deflate}
+		if entry.mode != 0 {
+			header.SetMode(entry.mode)
+		}
+		writer, err := archive.CreateHeader(header)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -140,4 +145,25 @@ func decimal(value int) string {
 		value /= 10
 	}
 	return string(digits[position:])
+}
+
+func TestRejectsNonRegularEntriesWithValidMetadata(t *testing.T) {
+	for name, mode := range map[string]os.FileMode{"symlink": os.ModeSymlink | 0o777, "fifo": os.ModeNamedPipe | 0o600, "device": os.ModeDevice | 0o600} {
+		t.Run(name, func(t *testing.T) {
+			payload := []byte("../../outside")
+			notice := []byte("Review locally before sharing.")
+			sum, noticeSum := sha256.Sum256(payload), sha256.Sum256(notice)
+			metadata := baseMetadata([]bundle.EntryMetadata{
+				{Name: "collectors/logs/log.txt", SHA256: hex.EncodeToString(sum[:]), Size: int64(len(payload))},
+				{Name: "REVIEW_BEFORE_SHARING.txt", SHA256: hex.EncodeToString(noticeSum[:]), Size: int64(len(notice))},
+			})
+			path := filepath.Join(t.TempDir(), "special.zip")
+			writeZIP(t, path, []zipEntry{
+				{name: "bundle.json", data: mustJSON(t, metadata)},
+				{name: "collectors/logs/log.txt", data: payload, mode: mode},
+				{name: "REVIEW_BEFORE_SHARING.txt", data: notice},
+			})
+			assertRejectedWith(t, path, "non-regular")
+		})
+	}
 }

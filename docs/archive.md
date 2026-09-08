@@ -12,11 +12,13 @@ contains:
 
 `inspect` is offline and never extracts entries. It rejects malformed ZIPs,
 absolute/traversing/drive/colon/backslash names, duplicates and case collisions,
-unexpected entries, excessive entry or uncompressed sizes, extreme compression
+non-regular entries (including symlinks and devices), excessive entry or uncompressed sizes, extreme compression
 ratios, inconsistent metadata/errors, and corrupt content hashes. It prints only
 safe bundle-level metadata, never collector content.
 
 Archive creation uses a private temporary file in the destination directory and
-renames it into place after closing and syncing. Existing output paths are
-refused. Atomicity ultimately follows the destination filesystem's rename
-semantics.
+publishes it with an exclusive hard link after closing and syncing, then removes
+the temporary name. Existing output paths, including dangling symlinks or names
+created by another process during collection, are refused. The destination must
+support hard links; unsupported filesystems fail closed. No overwrite-prone
+rename or partial-copy fallback is used.

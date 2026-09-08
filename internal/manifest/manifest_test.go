@@ -96,3 +96,16 @@ func writeManifest(t *testing.T, input string) string {
 	}
 	return path
 }
+
+func TestManifestReadLimit(t *testing.T) {
+	for _, size := range []int{1 << 20, (1 << 20) + 1} {
+		input := valid + "#" + strings.Repeat("x", size-len(valid)-1)
+		_, err := manifest.Load(writeManifest(t, input))
+		if size == 1<<20 && err != nil {
+			t.Fatalf("manifest at limit rejected: %v", err)
+		}
+		if size > 1<<20 && (err == nil || !strings.Contains(err.Error(), "1 MiB")) {
+			t.Fatalf("oversized manifest accepted: %v", err)
+		}
+	}
+}

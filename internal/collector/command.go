@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"os/exec"
+	"time"
 
 	"github.com/tjacky87-lab/diagsift/internal/manifest"
 	"github.com/tjacky87-lab/diagsift/internal/policy"
@@ -41,9 +42,13 @@ func collectCommand(ctx context.Context, sink *Sink, spec manifest.Collector, sa
 	commandContext, cancel := context.WithTimeout(ctx, spec.Timeout.Duration)
 	defer cancel()
 
-	command := exec.Command(spec.Executable, spec.Args...)
+	command := exec.CommandContext(commandContext, spec.Executable, spec.Args...)
 	command.Env = MinimalEnvironment()
 	configureProcess(command)
+	command.Cancel = func() error { terminateProcess(command); return nil }
+	// Descendants may inherit the pipes even after the direct process exits.
+	// Bound pipe draining on every platform, including Windows.
+	command.WaitDelay = 250 * time.Millisecond
 	stdout := newBoundedBuffer(spec.MaxOutputBytes)
 	stderr := newBoundedBuffer(spec.MaxOutputBytes)
 	command.Stdout = stdout
@@ -53,22 +58,15 @@ func collectCommand(ctx context.Context, sink *Sink, spec manifest.Collector, sa
 		sink.Error(spec.ID, "command-start", "command could not be started")
 		return
 	}
-	done := make(chan error, 1)
-	go func() { done <- command.Wait() }()
-	var waitErr error
-	select {
-	case waitErr = <-done:
-	case <-commandContext.Done():
-		terminateProcess(command)
-		<-done
+	waitErr := command.Wait()
+	if commandContext.Err() != nil {
 		if ctx.Err() != nil {
 			sink.Error(spec.ID, "deadline", "global collection deadline reached")
 		} else {
 			sink.Error(spec.ID, "timeout", "command timed out")
 		}
-	}
-	if waitErr != nil && commandContext.Err() == nil {
-		sink.Error(spec.ID, "command-exit", "command exited unsuccessfully")
+	} else if waitErr != nil {
+		sink.Error(spec.ID, "command-exit", "command exited unsuccessfully or output pipes did not close")
 	}
 	addCommandOutput(sink, spec, "stdout.txt", stdout, sanitizer)
 	addCommandOutput(sink, spec, "stderr.txt", stderr, sanitizer)

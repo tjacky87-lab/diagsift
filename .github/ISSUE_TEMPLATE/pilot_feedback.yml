@@ -1,0 +1,28 @@
+name: Pilot feedback
+description: Report a real or synthetic DiagSift trial without uploading a bundle.
+title: "Pilot feedback: "
+body:
+  - type: markdown
+    attributes:
+      value: "Please keep diagnostic ZIPs, logs, full plans, credentials, and private paths on your machine. Downloads and internal rehearsals do not count as completed independent pilots."
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: "Role, project, OS, DiagSift version/revision, and real or synthetic scenario."
+    validations:
+      required: true
+  - type: textarea
+    id: result
+    attributes:
+      label: What happened?
+      description: "Results of validate, plan, collect, inspect, and local content review. Did collection match the preview? Any errors or truncation?"
+    validations:
+      required: true
+  - type: textarea
+    id: usefulness
+    attributes:
+      label: Was it useful?
+      description: "What context helped or was missing? Where did you need help, and what should change? Negative results are welcome."
+    validations:
+      required: true

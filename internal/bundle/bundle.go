@@ -52,7 +52,7 @@ type Result struct {
 }
 
 func Create(ctx context.Context, loaded manifest.Loaded, preview plan.Plan, output, version string, sanitizer collector.Sanitizer) (Result, error) {
-	if _, err := os.Stat(output); err == nil {
+	if _, err := os.Lstat(output); err == nil {
 		return Result{}, fmt.Errorf("output already exists")
 	} else if !os.IsNotExist(err) {
 		return Result{}, fmt.Errorf("output path is unavailable")
@@ -169,13 +169,11 @@ func writeAtomicZIP(output string, staging *workspace.Workspace, entries []repor
 	if err := temporary.Close(); err != nil {
 		return fmt.Errorf("close archive")
 	}
-	if _, err := os.Stat(abs); err == nil {
-		return fmt.Errorf("output already exists")
-	} else if !os.IsNotExist(err) {
-		return fmt.Errorf("output path is unavailable")
-	}
-	if err := os.Rename(temporaryName, abs); err != nil {
-		return fmt.Errorf("atomically place archive")
+	// Linking the completed same-directory temporary file publishes it atomically
+	// and refuses ALL existing names, including dangling symlinks. Stat + Rename
+	// is not sufficient: Rename can replace a file created between those calls.
+	if err := os.Link(temporaryName, abs); err != nil {
+		return fmt.Errorf("publish bundle without overwriting (destination must support hard links): %w", err)
 	}
 	return nil
 }
