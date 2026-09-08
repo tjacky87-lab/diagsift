@@ -1,0 +1,193 @@
+{
+  "recorded_date": "2026-09-08",
+  "platform": "Linux-6.18.35-x86_64-with-glibc2.39",
+  "versions": {
+    "diagsift": "diagsift v0.1.0-rc.2",
+    "restic": "restic 0.19.1 compiled with go1.26.4 on linux/amd64",
+    "rclone": "rclone v1.75.1\n- os/version: ubuntu 24.04 (64 bit)\n- os/kernel: 6.18.35 (x86_64)\n- os/type: linux\n- os/arch: amd64\n- go/version: go1.26.8\n- go/linking: static\n- go/tags: none"
+  },
+  "binary_sha256": {
+    "diagsift": "33c62f323a476ef39c3bdcc2450395855690b72be58c38cbf0b2cb1c3b59a896",
+    "restic": "20d4142678d0d95ec11a4759def1b73fd9190abc9ca19e4b62d067c0b387e639",
+    "rclone": "f66d8c1d552ad90296a11bc8b46d56a7fa5da1a7fa05e7ca522d95df92c4a4c0"
+  },
+  "scope": "local fixtures only; no remote service; no user data; no time-saving claim",
+  "cases": [
+    {
+      "case": "restic",
+      "source": "https://forum.restic.net/t/fatal-wrong-password-or-no-key-found/3125/11",
+      "classification": "maintainer-run local reproduction; not independent adoption",
+      "collector_entries": [
+        "collectors/log/diagnostic.log",
+        "collectors/platform/system.json",
+        "collectors/version/stdout.txt"
+      ],
+      "inspect": {
+        "formatVersion": "diagsift.bundle/v1alpha1",
+        "name": "restic-support",
+        "createdAt": "2026-09-08T02:50:12Z",
+        "partial": false,
+        "entryCount": 4,
+        "errorCount": 0,
+        "totalUncompressed": 1674,
+        "hashesVerified": true
+      },
+      "diagnostic_marker_preserved": "not-a-password-file",
+      "correction_exit_code": 0,
+      "collected_log": "Local fixture. Failing command: restic -r repository -p not-a-password-file snapshots\nFatal: Resolving password failed: Fatal: not-a-password-file does not exist\n"
+    },
+    {
+      "case": "rclone",
+      "source": "https://forum.rclone.org/t/configuration-settings-return-error-error-listing-directory-not-found/19874",
+      "classification": "maintainer-run local reproduction; not independent adoption",
+      "collector_entries": [
+        "collectors/log/diagnostic.log",
+        "collectors/platform/system.json",
+        "collectors/version/stdout.txt"
+      ],
+      "inspect": {
+        "formatVersion": "diagsift.bundle/v1alpha1",
+        "name": "rclone-support",
+        "createdAt": "2026-09-08T02:50:12Z",
+        "partial": false,
+        "entryCount": 4,
+        "errorCount": 0,
+        "totalUncompressed": 2335,
+        "hashesVerified": true
+      },
+      "diagnostic_marker_preserved": "directory not found",
+      "correction_exit_code": 0,
+      "collected_log": "Local fixture. Failing command: rclone --config fixture.conf ls demo -vv\n2026/09/08 10:50:12 DEBUG : rclone: Version \"v1.75.1\" starting with parameters [\"rclone\" \"--config\" \"<WORK>/rclone/fixture.conf\" \"ls\" \"demo\" \"-vv\"]\n2026/09/08 10:50:12 DEBUG : Creating backend with remote \"demo\"\n2026/09/08 10:50:12 DEBUG : Using config file from \"<WORK>/rclone/fixture.conf\"\n2026/09/08 10:50:12 NOTICE: \"demo\" refers to a local folder, use \"demo:\" to refer to your remote or \"./demo\" to hide this warning\n2026/09/08 10:50:12 ERROR : error listing: directory not found\n2026/09/08 10:50:12 DEBUG : 3 go routines active\n2026/09/08 10:50:12 NOTICE: Failed to ls with 2 errors: last error was: directory not found\n"
+    }
+  ],
+  "events": [
+    {
+      "command": "diagsift version",
+      "cwd": "<WORK>",
+      "input": null,
+      "exit_code": 0,
+      "duration_seconds": 0.0069,
+      "output": "diagsift v0.1.0-rc.2\n"
+    },
+    {
+      "command": "restic version",
+      "cwd": "<WORK>",
+      "input": null,
+      "exit_code": 0,
+      "duration_seconds": 0.0089,
+      "output": "restic 0.19.1 compiled with go1.26.4 on linux/amd64\n"
+    },
+    {
+      "command": "rclone version",
+      "cwd": "<WORK>",
+      "input": null,
+      "exit_code": 0,
+      "duration_seconds": 0.0349,
+      "output": "rclone v1.75.1\n- os/version: ubuntu 24.04 (64 bit)\n- os/kernel: 6.18.35 (x86_64)\n- os/type: linux\n- os/arch: amd64\n- go/version: go1.26.8\n- go/linking: static\n- go/tags: none\n"
+    },
+    {
+      "command": "restic -r <WORK>/restic/repository -p <WORK>/restic/fixture-passphrase.txt init",
+      "cwd": "<WORK>/restic",
+      "input": null,
+      "exit_code": 0,
+      "duration_seconds": 2.5833,
+      "output": "created restic repository 70b98b11ec at <WORK>/restic/repository\n\nPlease note that knowledge of your password is required to access\nthe repository. Losing your password means that your data is\nirrecoverably lost.\n"
+    },
+    {
+      "command": "restic -r <WORK>/restic/repository -p not-a-password-file snapshots",
+      "cwd": "<WORK>/restic",
+      "input": null,
+      "exit_code": 1,
+      "duration_seconds": 0.0098,
+      "output": "Fatal: Resolving password failed: Fatal: not-a-password-file does not exist\n"
+    },
+    {
+      "command": "restic -r <WORK>/restic/repository -p <WORK>/restic/fixture-passphrase.txt snapshots",
+      "cwd": "<WORK>/restic",
+      "input": null,
+      "exit_code": 0,
+      "duration_seconds": 0.6653,
+      "output": ""
+    },
+    {
+      "command": "diagsift validate <WORK>/restic/selected/diagsift.yaml",
+      "cwd": "<WORK>/restic/selected",
+      "input": null,
+      "exit_code": 0,
+      "duration_seconds": 0.0019,
+      "output": "valid: restic-support (diagsift.yaml)\n"
+    },
+    {
+      "command": "diagsift plan <WORK>/restic/selected/diagsift.yaml",
+      "cwd": "<WORK>/restic/selected",
+      "input": null,
+      "exit_code": 0,
+      "duration_seconds": 0.002,
+      "output": "{\n  \"apiVersion\": \"diagsift/v1alpha1\",\n  \"manifestPath\": \"<WORK>/restic/selected/diagsift.yaml\",\n  \"manifestSHA256\": \"da2125ba7b81d86e0fc2d473f13b66ae32f21b8e573800d4b0f9c4772965d0ac\",\n  \"name\": \"restic-support\",\n  \"limits\": {\n    \"maxFiles\": 4,\n    \"maxTotalBytes\": 2097152,\n    \"maxDuration\": \"15s\"\n  },\n  \"roots\": [\n    {\n      \"id\": \"selected\",\n      \"path\": \"<WORK>/restic/selected\"\n    }\n  ],\n  \"collectors\": [\n    {\n      \"id\": \"version\",\n      \"type\": \"command\",\n      \"executable\": \"restic\",\n      \"args\": [\n        \"version\"\n      ],\n      \"timeout\": \"5s\",\n      \"maxOutputBytes\": 16384\n    },\n    {\n      \"id\": \"platform\",\n      \"type\": \"system\",\n      \"fields\": [\n        \"os\",\n        \"arch\"\n      ]\n    },\n    {\n      \"id\": \"log\",\n      \"type\": \"file\",\n      \"root\": \"selected\",\n      \"paths\": [\n        \"diagnostic.log\"\n      ],\n      \"maxBytes\": 1048576\n    }\n  ],\n  \"redactions\": [\n    \"builtin:private-keys\",\n    \"builtin:bearer-tokens\",\n    \"builtin:credentials\",\n    \"builtin:url-credentials\",\n    \"builtin:connection-strings\",\n    \"builtin:paths\"\n  ],\n  \"warnings\": [\n    \"Redaction reduces risk but does not guarantee that a bundle is safe to share.\",\n    \"Allowed child executables are not sandboxed and may have their own side effects.\"\n  ]\n}\n"
+    },
+    {
+      "command": "diagsift collect <WORK>/restic/selected/diagsift.yaml --output <WORK>/restic/selected/case.zip",
+      "cwd": "<WORK>/restic/selected",
+      "input": "YES\n",
+      "exit_code": 0,
+      "duration_seconds": 0.0128,
+      "output": "{\n  \"apiVersion\": \"diagsift/v1alpha1\",\n  \"manifestPath\": \"<WORK>/restic/selected/diagsift.yaml\",\n  \"manifestSHA256\": \"da2125ba7b81d86e0fc2d473f13b66ae32f21b8e573800d4b0f9c4772965d0ac\",\n  \"name\": \"restic-support\",\n  \"limits\": {\n    \"maxFiles\": 4,\n    \"maxTotalBytes\": 2097152,\n    \"maxDuration\": \"15s\"\n  },\n  \"roots\": [\n    {\n      \"id\": \"selected\",\n      \"path\": \"<WORK>/restic/selected\"\n    }\n  ],\n  \"collectors\": [\n    {\n      \"id\": \"version\",\n      \"type\": \"command\",\n      \"executable\": \"restic\",\n      \"args\": [\n        \"version\"\n      ],\n      \"timeout\": \"5s\",\n      \"maxOutputBytes\": 16384\n    },\n    {\n      \"id\": \"platform\",\n      \"type\": \"system\",\n      \"fields\": [\n        \"os\",\n        \"arch\"\n      ]\n    },\n    {\n      \"id\": \"log\",\n      \"type\": \"file\",\n      \"root\": \"selected\",\n      \"paths\": [\n        \"diagnostic.log\"\n      ],\n      \"maxBytes\": 1048576\n    }\n  ],\n  \"redactions\": [\n    \"builtin:private-keys\",\n    \"builtin:bearer-tokens\",\n    \"builtin:credentials\",\n    \"builtin:url-credentials\",\n    \"builtin:connection-strings\",\n    \"builtin:paths\"\n  ],\n  \"warnings\": [\n    \"Redaction reduces risk but does not guarantee that a bundle is safe to share.\",\n    \"Allowed child executables are not sandboxed and may have their own side effects.\"\n  ]\n}\nType YES to collect this plan locally: created case.zip: 3 collector entries, 0 errors, partial=false\n"
+    },
+    {
+      "command": "diagsift inspect <WORK>/restic/selected/case.zip",
+      "cwd": "<WORK>/restic/selected",
+      "input": null,
+      "exit_code": 0,
+      "duration_seconds": 0.0017,
+      "output": "{\n  \"formatVersion\": \"diagsift.bundle/v1alpha1\",\n  \"name\": \"restic-support\",\n  \"createdAt\": \"2026-09-08T02:50:12Z\",\n  \"partial\": false,\n  \"entryCount\": 4,\n  \"errorCount\": 0,\n  \"totalUncompressed\": 1674,\n  \"hashesVerified\": true\n}\n"
+    },
+    {
+      "command": "rclone --config <WORK>/rclone/fixture.conf ls demo -vv",
+      "cwd": "<WORK>/rclone",
+      "input": null,
+      "exit_code": 3,
+      "duration_seconds": 0.0366,
+      "output": "2026/09/08 10:50:12 DEBUG : rclone: Version \"v1.75.1\" starting with parameters [\"rclone\" \"--config\" \"<WORK>/rclone/fixture.conf\" \"ls\" \"demo\" \"-vv\"]\n2026/09/08 10:50:12 DEBUG : Creating backend with remote \"demo\"\n2026/09/08 10:50:12 DEBUG : Using config file from \"<WORK>/rclone/fixture.conf\"\n2026/09/08 10:50:12 NOTICE: \"demo\" refers to a local folder, use \"demo:\" to refer to your remote or \"./demo\" to hide this warning\n2026/09/08 10:50:12 ERROR : error listing: directory not found\n2026/09/08 10:50:12 DEBUG : 3 go routines active\n2026/09/08 10:50:12 NOTICE: Failed to ls with 2 errors: last error was: directory not found\n"
+    },
+    {
+      "command": "rclone --config <WORK>/rclone/fixture.conf ls demo:",
+      "cwd": "<WORK>/rclone",
+      "input": null,
+      "exit_code": 0,
+      "duration_seconds": 0.033,
+      "output": "       26 hello.txt\n"
+    },
+    {
+      "command": "diagsift validate <WORK>/rclone/selected/diagsift.yaml",
+      "cwd": "<WORK>/rclone/selected",
+      "input": null,
+      "exit_code": 0,
+      "duration_seconds": 0.0023,
+      "output": "valid: rclone-support (diagsift.yaml)\n"
+    },
+    {
+      "command": "diagsift plan <WORK>/rclone/selected/diagsift.yaml",
+      "cwd": "<WORK>/rclone/selected",
+      "input": null,
+      "exit_code": 0,
+      "duration_seconds": 0.0032,
+      "output": "{\n  \"apiVersion\": \"diagsift/v1alpha1\",\n  \"manifestPath\": \"<WORK>/rclone/selected/diagsift.yaml\",\n  \"manifestSHA256\": \"007b5736d212c1c53a2a1f77a8185aeb7b630301f5143a4d6befbafa174dfe60\",\n  \"name\": \"rclone-support\",\n  \"limits\": {\n    \"maxFiles\": 4,\n    \"maxTotalBytes\": 2097152,\n    \"maxDuration\": \"15s\"\n  },\n  \"roots\": [\n    {\n      \"id\": \"selected\",\n      \"path\": \"<WORK>/rclone/selected\"\n    }\n  ],\n  \"collectors\": [\n    {\n      \"id\": \"version\",\n      \"type\": \"command\",\n      \"executable\": \"rclone\",\n      \"args\": [\n        \"version\"\n      ],\n      \"timeout\": \"5s\",\n      \"maxOutputBytes\": 16384\n    },\n    {\n      \"id\": \"platform\",\n      \"type\": \"system\",\n      \"fields\": [\n        \"os\",\n        \"arch\"\n      ]\n    },\n    {\n      \"id\": \"log\",\n      \"type\": \"file\",\n      \"root\": \"selected\",\n      \"paths\": [\n        \"diagnostic.log\"\n      ],\n      \"maxBytes\": 1048576\n    }\n  ],\n  \"redactions\": [\n    \"builtin:private-keys\",\n    \"builtin:bearer-tokens\",\n    \"builtin:credentials\",\n    \"builtin:url-credentials\",\n    \"builtin:connection-strings\",\n    \"builtin:paths\"\n  ],\n  \"warnings\": [\n    \"Redaction reduces risk but does not guarantee that a bundle is safe to share.\",\n    \"Allowed child executables are not sandboxed and may have their own side effects.\"\n  ]\n}\n"
+    },
+    {
+      "command": "diagsift collect <WORK>/rclone/selected/diagsift.yaml --output <WORK>/rclone/selected/case.zip",
+      "cwd": "<WORK>/rclone/selected",
+      "input": "YES\n",
+      "exit_code": 0,
+      "duration_seconds": 0.0386,
+      "output": "{\n  \"apiVersion\": \"diagsift/v1alpha1\",\n  \"manifestPath\": \"<WORK>/rclone/selected/diagsift.yaml\",\n  \"manifestSHA256\": \"007b5736d212c1c53a2a1f77a8185aeb7b630301f5143a4d6befbafa174dfe60\",\n  \"name\": \"rclone-support\",\n  \"limits\": {\n    \"maxFiles\": 4,\n    \"maxTotalBytes\": 2097152,\n    \"maxDuration\": \"15s\"\n  },\n  \"roots\": [\n    {\n      \"id\": \"selected\",\n      \"path\": \"<WORK>/rclone/selected\"\n    }\n  ],\n  \"collectors\": [\n    {\n      \"id\": \"version\",\n      \"type\": \"command\",\n      \"executable\": \"rclone\",\n      \"args\": [\n        \"version\"\n      ],\n      \"timeout\": \"5s\",\n      \"maxOutputBytes\": 16384\n    },\n    {\n      \"id\": \"platform\",\n      \"type\": \"system\",\n      \"fields\": [\n        \"os\",\n        \"arch\"\n      ]\n    },\n    {\n      \"id\": \"log\",\n      \"type\": \"file\",\n      \"root\": \"selected\",\n      \"paths\": [\n        \"diagnostic.log\"\n      ],\n      \"maxBytes\": 1048576\n    }\n  ],\n  \"redactions\": [\n    \"builtin:private-keys\",\n    \"builtin:bearer-tokens\",\n    \"builtin:credentials\",\n    \"builtin:url-credentials\",\n    \"builtin:connection-strings\",\n    \"builtin:paths\"\n  ],\n  \"warnings\": [\n    \"Redaction reduces risk but does not guarantee that a bundle is safe to share.\",\n    \"Allowed child executables are not sandboxed and may have their own side effects.\"\n  ]\n}\nType YES to collect this plan locally: created case.zip: 3 collector entries, 0 errors, partial=false\n"
+    },
+    {
+      "command": "diagsift inspect <WORK>/rclone/selected/case.zip",
+      "cwd": "<WORK>/rclone/selected",
+      "input": null,
+      "exit_code": 0,
+      "duration_seconds": 0.003,
+      "output": "{\n  \"formatVersion\": \"diagsift.bundle/v1alpha1\",\n  \"name\": \"rclone-support\",\n  \"createdAt\": \"2026-09-08T02:50:12Z\",\n  \"partial\": false,\n  \"entryCount\": 4,\n  \"errorCount\": 0,\n  \"totalUncompressed\": 2335,\n  \"hashesVerified\": true\n}\n"
+    }
+  ]
+}
