@@ -19,9 +19,9 @@ type Redactor struct {
 }
 
 var builtinPatterns = map[string]string{
-	"private-keys":       `(?s)-----BEGIN(?: [A-Z0-9]+)? PRIVATE KEY-----.*?-----END(?: [A-Z0-9]+)? PRIVATE KEY-----`,
+	"private-keys":       `(?s)-----BEGIN(?: [A-Z0-9]+)? PRIVATE KEY-----.*?(?:-----END(?: [A-Z0-9]+)? PRIVATE KEY-----|$)`,
 	"bearer-tokens":      `(?i)\bBearer[ \t]+[A-Za-z0-9._~+/=-]{8,}`,
-	"credentials":        `(?i)\b(?:password|passwd|pwd|secret|token|api[_-]?key|access[_-]?key)[ \t]*[:=][ \t]*[^\s,;]{4,}`,
+	"credentials":        `(?i)\b(?:password|passwd|pwd|secret|token|api[_-]?key|access[_-]?key)["']?[ \t]*[:=][ \t]*(?:"(?:\\.|[^"\\])*(?:"|$)|'(?:\\.|[^'\\])*(?:'|$)|[^\s,;"'}]+)`,
 	"url-credentials":    `(?i)\b[a-z][a-z0-9+.-]*://[^\s/:@]+:[^\s/@]+@`,
 	"connection-strings": `(?i)\b(?:password|pwd|user[ _]?id|uid)[ \t]*=[ \t]*[^;\r\n]{1,256}`,
 	"paths":              `(?i)(?:[A-Z]:\\Users\\[^\\\s]+|/(?:home|Users)/[^/\s]+)`,

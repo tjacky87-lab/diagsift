@@ -18,17 +18,53 @@ or permits shell interpreters as command collectors. Redaction reduces risk but 
 bundle is safe to share. Allowed child executables are **not sandboxed** and can
 still perform actions permitted to the user.
 
+## Get DiagSift
+
+Prebuilt Windows, macOS, and Linux binaries (amd64 and arm64) are on the
+[release page](https://github.com/tjacky87-lab/diagsift/releases/tag/v0.1.0-rc.1).
+Download the binary for your OS/architecture and `SHA256SUMS` from the same release.
+Compare the file's SHA-256 with its matching line before running it:
+
+```powershell
+Get-FileHash .\diagsift-v0.1.0-rc.1-windows-amd64.exe -Algorithm SHA256
+```
+
+On Linux, use `sha256sum <downloaded-file>`; on macOS, use
+`shasum -a 256 <downloaded-file>`. Then rename the verified binary to
+`diagsift.exe` on Windows or `diagsift` on macOS/Linux. On macOS/Linux, run
+`chmod +x ./diagsift`. These binaries do not require Go.
+
+Published rc.1 binaries are experimental. Changes described under **Unreleased**
+in [CHANGELOG.md](CHANGELOG.md) require a source build until a new release exists.
+
 ## Try it in five minutes
 
-Prerequisite: one of the two currently supported Go release lines (Go 1.25 or
-1.26; support window checked against go.dev on 2026-08-17).
+The [first-time-user pilot](https://github.com/tjacky87-lab/diagsift/issues/5)
+includes a synthetic example and step-by-step instructions. For a real project,
+follow the [pilot guide](docs/pilot-guide.md). Neither exercise requires sharing
+a diagnostic bundle.
+
+To build from source, use Go 1.26 or 1.27 (the CI-tested release lines; checked
+2026-09-08 against [go.dev](https://go.dev/dl/)):
 
 ```sh
+git clone https://github.com/tjacky87-lab/diagsift.git
+cd diagsift
 go run ./cmd/diagsift validate examples/basic/diagsift.yaml
 go run ./cmd/diagsift plan examples/basic/diagsift.yaml
-go run ./cmd/diagsift collect examples/basic/diagsift.yaml --output basic.zip --yes
+go run ./cmd/diagsift collect examples/basic/diagsift.yaml --output basic.zip
 go run ./cmd/diagsift inspect basic.zip
 ```
+
+Collection displays the plan and asks you to type `YES`. The `--yes` option is
+for automation after separately reviewing the plan. Use a new output filename
+for each run; existing paths are never overwritten. Save on a filesystem that
+supports hard links (for example NTFS, APFS, or ext4). Unsupported destinations
+fail without replacing existing data.
+
+`inspect` verifies structure, limits, and hashes. **It does not display the log
+contents or certify that secrets are absent.** Open the ZIP in a local archive
+viewer, read every entry, and decide independently whether to share anything.
 
 ## Safety model
 

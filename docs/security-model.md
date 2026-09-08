@@ -12,7 +12,9 @@ DiagSift is a local collection tool, not a sandbox or anonymization product.
   denied as executables and the child receives a minimal environment.
 - Allowed executables are not sandboxed; they may use the user's normal filesystem
   and network permissions. Windows P0 guarantees direct-process timeout cleanup,
-  while Unix uses a process group for descendant cleanup.
+  while Unix uses a process group for descendant cleanup. Pipe draining after
+  process exit or cancellation is limited to 250 ms, so inherited handles cannot
+  keep collection waiting indefinitely. This does not terminate Windows descendants.
 - Text is bounded in memory, redacted as a complete stream, and only then written
   to a private staging directory. Binary and invalid UTF-8 data is skipped.
 - Recorded collector errors have a hard ceiling; the final bounded record reports

@@ -9,16 +9,17 @@ import (
 )
 
 const (
-	HardMaxFiles          = 1_000
-	HardMaxTotalBytes     = int64(64 << 20)
-	HardMaxFileBytes      = int64(8 << 20)
-	HardMaxCommandBytes   = int64(4 << 20)
-	HardMaxDuration       = 5 * time.Minute
-	HardMaxCommandTimeout = 1 * time.Minute
-	HardMaxRegexLength    = 512
-	HardMaxCollectors     = 100
-	HardMaxPaths          = 500
-	HardMaxRecordedErrors = 256
+	HardMaxCompressionRatio = 1000
+	HardMaxFiles            = 1_000
+	HardMaxTotalBytes       = int64(64 << 20)
+	HardMaxFileBytes        = int64(8 << 20)
+	HardMaxCommandBytes     = int64(4 << 20)
+	HardMaxDuration         = 5 * time.Minute
+	HardMaxCommandTimeout   = 1 * time.Minute
+	HardMaxRegexLength      = 512
+	HardMaxCollectors       = 100
+	HardMaxPaths            = 500
+	HardMaxRecordedErrors   = 256
 )
 
 type Limits struct {

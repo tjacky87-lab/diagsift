@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -31,6 +32,13 @@ func TestCommandHelper(t *testing.T) {
 	case "output":
 		fmt.Printf("Bearer invalid.synthetic.command.token secret-env=%s", os.Getenv("DIAGSIFT_TEST_SECRET"))
 		fmt.Fprint(os.Stderr, "password=INVALID_SYNTHETIC_STDERR")
+	case "inherited-pipe":
+		child := exec.Command(os.Args[0], "-test.run=TestCommandHelper", "--", "sleep")
+		child.Stdout, child.Stderr = os.Stdout, os.Stderr
+		if err := child.Start(); err != nil {
+			os.Exit(2)
+		}
+		fmt.Println(child.Process.Pid)
 	case "sleep":
 		time.Sleep(5 * time.Second)
 	}
@@ -118,4 +126,34 @@ redactions:
 		t.Fatal(err)
 	}
 	return loaded, preview
+}
+
+func TestCommandDoesNotWaitForInheritedPipes(t *testing.T) {
+	loaded, preview := commandManifest(t, "inherited-pipe", "500ms", 128)
+	r, err := redact.New(manifest.Redactions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	started := time.Now()
+	result := collector.Collect(context.Background(), loaded, preview, r)
+	// The product intentionally does not contain Windows descendants. Clean up
+	// this test's child so it cannot lock the temporary test executable.
+	for _, entry := range result.Entries {
+		if strings.HasSuffix(entry.Name, "/stdout.txt") {
+			pid, err := strconv.Atoi(strings.TrimSpace(string(entry.Data)))
+			if err != nil {
+				t.Fatal(err)
+			}
+			process, err := os.FindProcess(pid)
+			if err == nil {
+				defer func() { _ = process.Kill(); _, _ = process.Wait() }()
+			}
+		}
+	}
+	if time.Since(started) > 3*time.Second {
+		t.Fatal("collection waited for descendant-held output pipes")
+	}
+	if len(result.Errors) == 0 {
+		t.Fatal("expected timeout or incomplete-output error")
+	}
 }

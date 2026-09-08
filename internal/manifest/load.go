@@ -25,7 +25,20 @@ func Load(path string) (Loaded, error) {
 	if err != nil {
 		return Loaded{}, fmt.Errorf("resolve manifest path: %w", err)
 	}
-	data, err := os.ReadFile(abs)
+	info, err := os.Stat(abs)
+	if err != nil {
+		return Loaded{}, fmt.Errorf("read manifest: %w", err)
+	}
+	if !info.Mode().IsRegular() {
+		return Loaded{}, fmt.Errorf("manifest must be a regular file")
+	}
+	file, err := os.Open(abs)
+	if err != nil {
+		return Loaded{}, fmt.Errorf("read manifest: %w", err)
+	}
+	defer func() { _ = file.Close() }()
+	// Enforce the ceiling while reading, including if the file grows after Stat.
+	data, err := io.ReadAll(io.LimitReader(file, (1<<20)+1))
 	if err != nil {
 		return Loaded{}, fmt.Errorf("read manifest: %w", err)
 	}

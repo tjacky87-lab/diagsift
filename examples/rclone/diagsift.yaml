@@ -1,0 +1,28 @@
+apiVersion: diagsift/v1alpha1
+kind: DiagnosticBundle
+metadata:
+  name: rclone-support
+limits:
+  maxFiles: 4
+  maxTotalBytes: 2097152
+  maxDuration: 15s
+roots:
+  - id: selected
+    path: .
+collectors:
+  - id: version
+    type: command
+    executable: rclone
+    args: [version]
+    timeout: 5s
+    maxOutputBytes: 16384
+  - id: platform
+    type: system
+    fields: [os, arch]
+  - id: log
+    type: file
+    root: selected
+    paths: [diagnostic.log]
+    maxBytes: 1048576
+redactions:
+  builtins: [private-keys, bearer-tokens, credentials, url-credentials, connection-strings, paths]

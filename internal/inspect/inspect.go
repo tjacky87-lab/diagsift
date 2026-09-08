@@ -25,7 +25,7 @@ const (
 	MaxArchiveEntries      = policy.HardMaxFiles + 16
 	MaxArchiveUncompressed = uint64(policy.HardMaxTotalBytes + 8<<20)
 	MaxEntryUncompressed   = uint64(policy.HardMaxTotalBytes + 1<<20)
-	MaxCompressionRatio    = uint64(1000)
+	MaxCompressionRatio    = uint64(policy.HardMaxCompressionRatio)
 )
 
 type Summary struct {
@@ -54,6 +54,9 @@ func Open(path string) (Summary, error) {
 		name, err := manifest.SafeArchivePath(file.Name)
 		if err != nil || name == "" || file.FileInfo().IsDir() {
 			return Summary{}, fmt.Errorf("bundle contains an unsafe entry name")
+		}
+		if !file.Mode().IsRegular() {
+			return Summary{}, fmt.Errorf("bundle contains a non-regular entry")
 		}
 		key := strings.ToLower(name)
 		if _, exists := files[key]; exists {
