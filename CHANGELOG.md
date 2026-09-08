@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v0.1.0-rc.2 — 2026-09-08
 
 - Store unusually compressible large entries without compression so valid local
   logs pass inspection without relaxing the compression-bomb limit.
