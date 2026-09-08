@@ -3,6 +3,7 @@ package bundle
 
 import (
 	"archive/zip"
+	"compress/flate"
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
@@ -17,6 +18,7 @@ import (
 	"github.com/tjacky87-lab/diagsift/internal/collector"
 	"github.com/tjacky87-lab/diagsift/internal/manifest"
 	"github.com/tjacky87-lab/diagsift/internal/plan"
+	"github.com/tjacky87-lab/diagsift/internal/policy"
 	"github.com/tjacky87-lab/diagsift/internal/report"
 	"github.com/tjacky87-lab/diagsift/internal/workspace"
 )
@@ -136,8 +138,15 @@ func writeAtomicZIP(output string, staging *workspace.Workspace, entries []repor
 		return fmt.Errorf("protect temporary bundle")
 	}
 	archive := zip.NewWriter(temporary)
+	archive.RegisterCompressor(zip.Deflate, newDeflater)
 	for _, entry := range entries {
-		header := &zip.FileHeader{Name: entry.Name, Method: zip.Deflate, Modified: time.Unix(0, 0).UTC()}
+		method, err := compressionMethod(entry.Data)
+		if err != nil {
+			_ = archive.Close()
+			_ = temporary.Close()
+			return err
+		}
+		header := &zip.FileHeader{Name: entry.Name, Method: method, Modified: time.Unix(0, 0).UTC()}
 		writer, err := archive.CreateHeader(header)
 		if err != nil {
 			_ = archive.Close()
@@ -176,4 +185,41 @@ func writeAtomicZIP(output string, staging *workspace.Workspace, entries []repor
 		return fmt.Errorf("publish bundle without overwriting (destination must support hard links): %w", err)
 	}
 	return nil
+}
+
+// Large repetitive logs can exceed the inspector's bomb-ratio ceiling despite
+// being within every collection limit. Store those entries without compression;
+// keep the same inspection ceiling for untrusted bundles.
+func compressionMethod(data []byte) (uint16, error) {
+	if len(data) <= 1<<20 {
+		return zip.Deflate, nil
+	}
+	var count compressedSize
+	writer, err := newDeflater(&count)
+	if err != nil {
+		return 0, fmt.Errorf("initialize compression size check")
+	}
+	if _, err := writer.Write(data); err != nil {
+		_ = writer.Close()
+		return 0, fmt.Errorf("check compressed entry size")
+	}
+	if err := writer.Close(); err != nil {
+		return 0, fmt.Errorf("finalize compression size check")
+	}
+	if uint64(len(data)) > policy.HardMaxCompressionRatio*count.bytes {
+		return zip.Store, nil
+	}
+	return zip.Deflate, nil
+}
+
+type compressedSize struct{ bytes uint64 }
+
+func (c *compressedSize) Write(data []byte) (int, error) {
+	c.bytes += uint64(len(data))
+	return len(data), nil
+}
+
+// Use the same fixed level for the size check and the actual ZIP stream.
+func newDeflater(w io.Writer) (io.WriteCloser, error) {
+	return flate.NewWriter(w, 5)
 }

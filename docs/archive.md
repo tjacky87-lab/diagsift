@@ -10,6 +10,9 @@ contains:
 - `REVIEW_BEFORE_SHARING.txt`: the mandatory local-review warning;
 - `collectors/<collector-id>/...`: bounded redacted collector text.
 
+Large entries that would exceed the compression-ratio limit are stored without
+compression. Other entries use Deflate. Collection size ceilings still apply.
+
 `inspect` is offline and never extracts entries. It rejects malformed ZIPs,
 absolute/traversing/drive/colon/backslash names, duplicates and case collisions,
 non-regular entries (including symlinks and devices), excessive entry or uncompressed sizes, extreme compression

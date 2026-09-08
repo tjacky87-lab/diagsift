@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Store unusually compressible large entries without compression so valid local
+  logs pass inspection without relaxing the compression-bomb limit.
+
 - Redact quoted and short credential values and private-key blocks whose closing
   marker is missing, including collector-truncated input.
 - Reject ZIP symlinks, devices, and other non-regular entries during inspection.
@@ -16,6 +19,9 @@ All notable changes will be documented here. The project follows semantic
 versioning once a first release is approved.
 
 ## Unreleased
+
+- Store unusually compressible large entries without compression so valid local
+  logs pass inspection without relaxing the compression-bomb limit.
 
 ## v0.1.0-rc.1 - 2026-08-18
 

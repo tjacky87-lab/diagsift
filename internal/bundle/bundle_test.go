@@ -157,3 +157,30 @@ func TestCreateRefusesDanglingOutputSymlink(t *testing.T) {
 		t.Fatalf("output link modified: %q %v", got, err)
 	}
 }
+
+func TestHighlyCompressibleBundleCanBeInspected(t *testing.T) {
+	dir := t.TempDir()
+	payload := []byte(strings.Repeat("0", 8<<20))
+	if err := os.WriteFile(filepath.Join(dir, "input.log"), payload, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	loaded, _ := loadManifest(t, dir, "input.log")
+	loaded.Manifest.Collectors[0].Paths = []string{"input.log"}
+	loaded.Manifest.Collectors[0].MaxBytes = int64(len(payload))
+	loaded.Manifest.Limits.MaxTotalBytes = int64(len(payload))
+	preview, err := plan.Build(loaded)
+	if err != nil {
+		t.Fatal(err)
+	}
+	r, err := redact.New(loaded.Manifest.Redactions)
+	if err != nil {
+		t.Fatal(err)
+	}
+	output := filepath.Join(dir, "repetitive.zip")
+	if _, err := bundle.Create(context.Background(), loaded, preview, output, "test", r); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := inspectbundle.Open(output); err != nil {
+		t.Fatalf("own bounded bundle rejected: %v", err)
+	}
+}
