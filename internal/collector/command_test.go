@@ -38,6 +38,7 @@ func TestCommandHelper(t *testing.T) {
 		if err := child.Start(); err != nil {
 			os.Exit(2)
 		}
+		fmt.Println(child.Process.Pid)
 	case "sleep":
 		time.Sleep(5 * time.Second)
 	}
@@ -128,13 +129,27 @@ redactions:
 }
 
 func TestCommandDoesNotWaitForInheritedPipes(t *testing.T) {
-	loaded, preview := commandManifest(t, "inherited-pipe", "100ms", 128)
+	loaded, preview := commandManifest(t, "inherited-pipe", "500ms", 128)
 	r, err := redact.New(manifest.Redactions{})
 	if err != nil {
 		t.Fatal(err)
 	}
 	started := time.Now()
 	result := collector.Collect(context.Background(), loaded, preview, r)
+	// The product intentionally does not contain Windows descendants. Clean up
+	// this test's child so it cannot lock the temporary test executable.
+	for _, entry := range result.Entries {
+		if strings.HasSuffix(entry.Name, "/stdout.txt") {
+			pid, err := strconv.Atoi(strings.TrimSpace(string(entry.Data)))
+			if err != nil {
+				t.Fatal(err)
+			}
+			process, err := os.FindProcess(pid)
+			if err == nil {
+				defer func() { _ = process.Kill(); _, _ = process.Wait() }()
+			}
+		}
+	}
 	if time.Since(started) > 3*time.Second {
 		t.Fatal("collection waited for descendant-held output pipes")
 	}

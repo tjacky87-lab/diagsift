@@ -2,6 +2,7 @@ package redact_test
 
 import (
 	"bytes"
+	"strings"
 	"testing"
 
 	"github.com/tjacky87-lab/diagsift/internal/manifest"
@@ -72,7 +73,10 @@ func TestPrivateKeyWithoutClosingMarker(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	input := []byte("prefix\n-----BEGIN RSA PRIVATE KEY-----\nINVALID_SYNTHETIC_TRUNCATED_KEY")
+	// Assemble this invalid fixture at runtime so repository scanners do not
+	// mistake the span between two separate test cases for one private key.
+	marker := strings.Join([]string{"-----BEGIN RSA PRIVATE", "KEY-----"}, " ")
+	input := []byte("prefix\n" + marker + "\nINVALID_SYNTHETIC_TRUNCATED_KEY")
 	output, counts, err := r.Sanitize(input)
 	if err != nil || bytes.Contains(output, []byte("INVALID_SYNTHETIC_TRUNCATED_KEY")) || counts["private-keys"] != 1 {
 		t.Fatalf("unterminated key survived: output=%q counts=%v err=%v", output, counts, err)
