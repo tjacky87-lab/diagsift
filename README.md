@@ -66,6 +66,14 @@ fail without replacing existing data.
 contents or certify that secrets are absent.** Open the ZIP in a local archive
 viewer, read every entry, and decide independently whether to share anything.
 
+## See the workflow and evidence
+
+Watch the [80-second demo](docs/evidence/demo.mp4), read the
+[two local support cases](docs/evidence/cases.md), or browse the
+[public evidence index](docs/evidence/README.md). These are controlled tests;
+independent user adoption is still being evaluated. Small
+[external review tasks](docs/review-tasks.md) are available.
+
 ## Safety model
 
 - Manifests fail closed on unknown fields, versions, duplicate IDs, unsafe paths,
