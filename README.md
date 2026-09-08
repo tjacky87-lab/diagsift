@@ -21,12 +21,12 @@ still perform actions permitted to the user.
 ## Get DiagSift
 
 Prebuilt Windows, macOS, and Linux binaries (amd64 and arm64) are on the
-[release page](https://github.com/tjacky87-lab/diagsift/releases/tag/v0.1.0-rc.1).
+[release page](https://github.com/tjacky87-lab/diagsift/releases/tag/v0.1.0-rc.2).
 Download the binary for your OS/architecture and `SHA256SUMS` from the same release.
 Compare the file's SHA-256 with its matching line before running it:
 
 ```powershell
-Get-FileHash .\diagsift-v0.1.0-rc.1-windows-amd64.exe -Algorithm SHA256
+Get-FileHash .\diagsift-v0.1.0-rc.2-windows-amd64.exe -Algorithm SHA256
 ```
 
 On Linux, use `sha256sum <downloaded-file>`; on macOS, use
@@ -34,8 +34,8 @@ On Linux, use `sha256sum <downloaded-file>`; on macOS, use
 `diagsift.exe` on Windows or `diagsift` on macOS/Linux. On macOS/Linux, run
 `chmod +x ./diagsift`. These binaries do not require Go.
 
-Published rc.1 binaries are experimental. Changes described under **Unreleased**
-in [CHANGELOG.md](CHANGELOG.md) require a source build until a new release exists.
+Release-candidate binaries are experimental. See [CHANGELOG.md](CHANGELOG.md)
+for the fixes included in v0.1.0-rc.2.
 
 ## Try it in five minutes
 
