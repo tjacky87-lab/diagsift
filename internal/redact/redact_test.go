@@ -75,7 +75,7 @@ func TestPrivateKeyWithoutClosingMarker(t *testing.T) {
 	}
 	// Assemble this invalid fixture at runtime so repository scanners do not
 	// mistake the span between two separate test cases for one private key.
-	marker := strings.Join([]string{"-----BEGIN RSA PRIVATE", "KEY-----"}, " ")
+	marker := strings.Join([]string{"-----BEGIN RSA PRIVATE", "KEY" + strings.Repeat("-", 5)}, " ")
 	input := []byte("prefix\n" + marker + "\nINVALID_SYNTHETIC_TRUNCATED_KEY")
 	output, counts, err := r.Sanitize(input)
 	if err != nil || bytes.Contains(output, []byte("INVALID_SYNTHETIC_TRUNCATED_KEY")) || counts["private-keys"] != 1 {
